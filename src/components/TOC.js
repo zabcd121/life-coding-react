@@ -1,6 +1,17 @@
 import React, {Component} from 'react';
 
 class TOC extends Component{
+    shouldComponentUpdate(newProps, newState){
+      console.log('==>TOC RENDER SHOUDCOMPENTUPDATE'
+      , newProps.data, this.props.data);
+      if(this.props.data === newProps.data){
+        return false;
+      }
+      return true;
+    }
+    //첫번째 인자값은 새롭게 바뀐 props값, 두번째는 이전의 값
+    //shouldComponentUpdate 함수를 사용하면 render보다 먼저 실행되면서 return값을 false로 주면 render함수가 실행되지도 않고 이 함수만 실행됨
+    //data값이 바뀌었을 때 render를 호출하고 바뀌지 않았을 때는 호출하지 않도록 설계
     render() {
       var lists = [];
       var data = this.props.data;

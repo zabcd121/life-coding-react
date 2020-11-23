@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import TOC from './components/TOC';
 import ReadContent from './components/ReadContent';
 import CreateContent from './components/CreateContent';
+import UpdateContent from './components/UpdateContent';
 import Subject from './components/Subject';
 import Control from './components/Control';
 import './App.css';
@@ -12,6 +13,7 @@ import './App.css';
 class App extends Component {
   constructor(props){
     super(props); //부모클래스의 생성자가 호출되고 props를 설정
+    this.max_content_id = 3;
     this.state = {
       mode: 'create',
       selected_content_id: 2,
@@ -26,28 +28,66 @@ class App extends Component {
     //컴포넌트가 내부적으로 사용할 값은 state를 사용한다.
   }
   //render함수보다 먼저 실행되면서 그 컴포넌트를 초기화시켜주고 싶으면 constructor안에다가 코드를 작성
-  render() {
+  
+  getReadContent(){
+    var i=0;
+      while(i < this.state.contents.length){
+        var data = this.state.contents[i];
+        if(data.id === this.state.selected_content_id){
+          return data;  
+          break;
+        }
+        i+=1;
+  }
+  
+  getContent(){
     var _title, _desc, _article = null;
     if(this.state.mode === 'welcome'){
       _title = this.state.welcome.title;
       _desc = this.state.welcome.desc;
       _article = <ReadContent title={_title} desc={_desc}></ReadContent>
     }else if(this.state.mode === 'read'){
-      var i=0;
-      while(i < this.state.contents.length){
-        var data = this.state.contents[i];
-        if(data.id === this.state.selected_content_id){
-          _title = data.title;
-          _desc = data.desc;
-          break;
-        }
-        i+=1;
-      }
-      _article = <ReadContent title={_title} desc={_desc}></ReadContent>
+      _content = this.getReadContent();
+      _article = <ReadContent title={_content.title} desc={_content.desc}></ReadContent>
     }else if(this.state.mode === 'create'){
-      _article = <CreateContent onsubmit={function(_title, _desc){}.bind(this)}></CreateContent>
+      _article = <CreateContent onSubmit={function(_title, _desc){
+        //add content to this.state.contents
+        this.max_content_id += 1;
+        // this.state.contents.push(
+        //   {id:this.max_content_id, title:_title, desc:_desc}
+        // );
+        var _contents = this.state.contents.concat(
+          {id:this.max_content_id, title:_title, desc:_desc}
+        );
+        // //var newContents = Array.from(this.state.contents);
+        // newContents.push({id:this.max_content_id, title:_title, desc:_desc});
+        //배열을 바꿀때는 concat 또는 push를 사용할때 Array.from을 사용해 복제하고 사용할 수있다
+        //객체에서는 Object.assign()을 사용해서 복제할 수 있다.
+        this.setState({
+          contents: _contents
+        }); 
+        //push는 배열의 오리지널데이터를 변경시키므로 권장x, concat을 쓰면은 오리지널은 안바뀌고 변수에 할당됨
+        //push를 해버리면 contents값이 바뀌므로 render함수가 다시 다 실행되버리므로 좋지않다.
+        console.log(_title, _desc);
+      }.bind(this)}></CreateContent>
+    }else if(this.state.mode === 'update'){
+      _content = this.getReadContent();
+      _article = <UpdateContent data={_content} onSubmit={function(_title, _desc){
+        //add content to this.state.contents
+        this.max_content_id += 1;
+        var _contents = this.state.contents.concat(
+          {id:this.max_content_id, title:_title, desc:_desc}
+        );
+        this.setState({
+          contents: _contents
+        }); 
+        console.log(_title, _desc);
+      }.bind(this)}></UpdateContent>
     }
-    console.log('render', this);
+    return _article;
+  }
+  render() {
+    console.log('App render');
     return (
       <div className="App">
         <Subject 
@@ -72,7 +112,7 @@ class App extends Component {
             mode: _mode
           })
         }.bind(this)}></Control>
-        {_article}
+        {this.getContent()}
       </div>
     )
   }
